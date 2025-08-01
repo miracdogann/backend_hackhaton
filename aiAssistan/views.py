@@ -127,3 +127,118 @@ def analyze_trendyol_product(request):
         "raw_comments": comments_with_emotion,
         "emotion_stats": emotion_stats,
     })
+
+
+
+import os
+import base64
+import traceback
+from dotenv import load_dotenv
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
+from google import genai
+from google.genai import types
+from .utils.base64_helpers import array_buffer_to_base64
+
+
+load_dotenv()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=GEMINI_API_KEY)
+
+@api_view(['GET', 'POST'])
+@parser_classes([MultiPartParser, FormParser])
+def try_on_view(request):
+    if request.method == 'GET':
+        return Response({"message": "Bu endpoint sadece POST yöntemiyle çalışır. Lütfen bir görsel yükleyin."}, status=200)
+
+    try:
+        person_image = request.FILES.get("person_image")
+        cloth_image = request.FILES.get("cloth_image")
+        instructions = request.POST.get("instructions", "")
+        model_type = request.POST.get("model_type", "")
+        gender = request.POST.get("gender", "")
+
+        garment_type = request.POST.get("garment_type", "")
+        style = request.POST.get("style", "")
+
+        if not person_image or not cloth_image:
+            return Response({"error": "Görseller eksik."}, status=status.HTTP_400_BAD_REQUEST)
+
+        ALLOWED_MIME_TYPES = {
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/heic",
+            "image/heif",
+        }
+
+        MAX_IMAGE_SIZE_MB = 16
+
+        if person_image.content_type not in ALLOWED_MIME_TYPES or cloth_image.content_type not in ALLOWED_MIME_TYPES:
+            return Response({"error": "Desteklenmeyen dosya formatı."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if person_image.size > MAX_IMAGE_SIZE_MB * 1024 * 1024 or cloth_image.size > MAX_IMAGE_SIZE_MB * 1024 * 1024:
+            return Response({"error": "Görsel boyutu 10MB'den büyük olamaz."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_bytes = person_image.read()
+        cloth_bytes = cloth_image.read()
+
+        user_b64 = array_buffer_to_base64(user_bytes)
+        cloth_b64 = array_buffer_to_base64(cloth_bytes)
+
+        # Gemini prompt
+        prompt = f"""
+        {{
+            "objective": "Generate a photorealistic virtual try-on image...",
+            "task": "High-Fidelity Virtual Try-On...",
+            ...
+            "model_type": "{model_type}",
+            "gender": "{gender}",
+            "garment_type": "{garment_type}",
+            "style": "{style}",
+            "instructions": "{instructions}"
+        }}
+        """
+
+        contents = [
+            prompt,
+            types.Part.from_bytes(data=user_bytes, mime_type=person_image.content_type),
+            types.Part.from_bytes(data=cloth_bytes, mime_type=cloth_image.content_type)
+
+        ]
+
+        response = client.models.generate_content(
+            model="gemini-2.0-flash-exp-image-generation",
+            contents=contents,
+            config=types.GenerateContentConfig(
+                response_modalities=['TEXT', 'IMAGE']
+            )
+        )
+
+        image_data = None
+        text_response = "Açıklama yok."
+        if response.candidates:
+            parts = response.candidates[0].content.parts
+            for part in parts:
+                if hasattr(part, "inline_data") and part.inline_data:
+                    image_data = part.inline_data.data
+                    image_mime_type = getattr(part.inline_data, "mime_type", "image/png")
+                elif hasattr(part, "text") and part.text:
+                    text_response = part.text
+
+        image_url = None
+        if image_data:
+            image_base64 = base64.b64encode(image_data).decode("utf-8")
+            image_url = f"data:{image_mime_type};base64,{image_base64}"
+
+        return Response({
+    "image": f"data:image/png;base64,{image_data.decode('utf-8') if isinstance(image_data, bytes) else image_data}",
+    "text": text_response
+})
+
+
+    except Exception as e:
+        traceback.print_exc()
+        return Response({"error": "Sunucu hatası", "detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
