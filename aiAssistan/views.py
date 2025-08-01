@@ -13,6 +13,17 @@ from aiAssistan.scraper.trendyol_scraper_selenium import get_all_comments
 from .gemini.comment_summary import analyze_emotions, summarize_comments
 from .scraper.qna_scraper import get_all_questions_and_answers
 from .gemini.qna_answering import answer_question_from_data
+import os
+import base64
+import traceback
+from dotenv import load_dotenv
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
+from google import genai
+from google.genai import types
+from .utils.base64_helpers import array_buffer_to_base64
 
 def home(request):
     return HttpResponse("Merhaba, burası anasayfa asistan!")
@@ -33,12 +44,7 @@ class Chat(APIView):
 
         # Dönen sonucu JSON olarak dön
         return Response(result, status=status.HTTP_200_OK)
-    
-
-
-
-
-
+   
 
 qa_cache = {}
 
@@ -130,17 +136,6 @@ def analyze_trendyol_product(request):
 
 
 
-import os
-import base64
-import traceback
-from dotenv import load_dotenv
-from rest_framework.decorators import api_view, parser_classes
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.response import Response
-from rest_framework import status
-from google import genai
-from google.genai import types
-from .utils.base64_helpers import array_buffer_to_base64
 
 
 load_dotenv()

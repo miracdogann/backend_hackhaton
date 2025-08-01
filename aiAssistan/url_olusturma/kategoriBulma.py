@@ -19,4 +19,4 @@ def kategori_bulma(kategori):
     # url_trendyol(kategori=value)
     return value
 
-kategori_bulma("telefon")
+# kategori_bulma("telefon")
