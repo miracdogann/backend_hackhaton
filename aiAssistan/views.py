@@ -152,12 +152,7 @@ def try_on_view(request):
         person_image = request.FILES.get("person_image")
         cloth_image = request.FILES.get("cloth_image")
         instructions = request.POST.get("instructions", "")
-        model_type = request.POST.get("model_type", "")
-        gender = request.POST.get("gender", "")
-
-        garment_type = request.POST.get("garment_type", "")
-        style = request.POST.get("style", "")
-
+        
         if not person_image or not cloth_image:
             return Response({"error": "Görseller eksik."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -180,22 +175,16 @@ def try_on_view(request):
         user_bytes = person_image.read()
         cloth_bytes = cloth_image.read()
 
-        user_b64 = array_buffer_to_base64(user_bytes)
-        cloth_b64 = array_buffer_to_base64(cloth_bytes)
-
         # Gemini prompt
         prompt = f"""
-        {{
-            "objective": "Generate a photorealistic virtual try-on image...",
-            "task": "High-Fidelity Virtual Try-On...",
-            ...
-            "model_type": "{model_type}",
-            "gender": "{gender}",
-            "garment_type": "{garment_type}",
-            "style": "{style}",
-            "instructions": "{instructions}"
-        }}
+        Aşağıda iki görsel yüklendi:
+        1. **Kullanıcının vücut fotoğrafı** – Bu fotoğrafta bir kişi uygun bir pozisyonda yer almakta.
+        2. **Denenmek istenen kıyafet görseli** – Bu, kullanıcının denemek istediği bir giysi parçasını içermektedir (örneğin bir tişört, elbise veya gömlek).
+
+        Bu iki görseli kullanarak gerçekçi bir sanal kıyafet deneme görseli üret. Yanıtı lütfen Türkçe olarak ver. 
+        Ek talimatlar: {instructions}
         """
+
 
         contents = [
             prompt,
@@ -219,14 +208,12 @@ def try_on_view(request):
             for part in parts:
                 if hasattr(part, "inline_data") and part.inline_data:
                     image_data = part.inline_data.data
-                    image_mime_type = getattr(part.inline_data, "mime_type", "image/png")
                 elif hasattr(part, "text") and part.text:
                     text_response = part.text
 
-        image_url = None
-        if image_data:
-            image_base64 = base64.b64encode(image_data).decode("utf-8")
-            image_url = f"data:{image_mime_type};base64,{image_base64}"
+        
+        
+            
 
         return Response({
     "image": f"data:image/png;base64,{image_data.decode('utf-8') if isinstance(image_data, bytes) else image_data}",
