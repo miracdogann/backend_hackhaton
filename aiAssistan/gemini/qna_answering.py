@@ -1,14 +1,10 @@
 from google import genai
-import os
 import random
 
-# API anahtarı .env içinden alınır
-api_key = os.getenv("GEMINI_API_KEY")
-if not api_key:
-    raise Exception("GEMINI_API_KEY ortam değişkeni bulunamadı!")
-
 # Gemini istemcisi
-client = genai.Client(api_key=api_key)
+GEMINI_API_KEY  = "AIzaSyDy1WEWDCXyVV2ee1N67SORE7QjDsbL6lc"
+
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 def answer_question_from_data(question: str, qa_data: list[dict]) -> str:
     if not qa_data:

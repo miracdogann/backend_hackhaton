@@ -10,7 +10,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 def get_all_questions_and_answers(product_url):
     options = Options()
     options.add_argument("--start-maximized")
-    #options.add_argument("--headless=new")  # Gerekirse görünmez mod için aç
+    options.add_argument("--headless=new")  # Gerekirse görünmez mod için aç
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
     # Q&A sayfasına yönlendirme

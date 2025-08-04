@@ -1,6 +1,4 @@
 from google import genai
-import os
-from dotenv import load_dotenv
 import json
 import re
 from .kategoriBulma import kategori_bulma
@@ -10,11 +8,9 @@ from .create_url_trendyol import url_trendyol
 from .search_trendyol_url import search_url
 from .renk import renk_bulma
 
-load_dotenv()  # .env dosyasını yükler
 
-api_key = os.getenv("GEMINI_API_KEY")
-if not api_key:
-    raise Exception("GEMINI_API_KEY ortam değişkeni bulunamadı!")
+api_key = "AIzaSyDy1WEWDCXyVV2ee1N67SORE7QjDsbL6lc"
+
 
 client = genai.Client(api_key=api_key)
 

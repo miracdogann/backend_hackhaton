@@ -1,10 +1,8 @@
-import requests
-import json
 import textwrap
 from google import genai
-import os 
+GEMINI_API_KEY  = "AIzaSyDy1WEWDCXyVV2ee1N67SORE7QjDsbL6lc"
 
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 def summarize_comments(comments: list[str]) -> str:
     prompt = (

@@ -1,0 +1,7 @@
+django
+djangorestframework
+django-cors-headers
+-q -U google-genai
+selenium
+webdriver-manager
+rapidfuzz

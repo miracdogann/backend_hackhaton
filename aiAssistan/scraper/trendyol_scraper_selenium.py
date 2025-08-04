@@ -9,7 +9,7 @@ def get_all_comments(product_url):
     options = Options()
     options.add_argument("--start-maximized")
     # İstersen headless modda çalıştırmak için şunu ekleyebilirsin:
-    # options.add_argument("--headless=new")
+    options.add_argument("--headless=new")
 
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.get(product_url)
