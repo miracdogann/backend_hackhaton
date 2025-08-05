@@ -8,8 +8,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 def get_all_comments(product_url):
     options = Options()
     options.add_argument("--start-maximized")
+    options.add_argument("--headless=new")  # Gerekirse görünmez mod için aç
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
     # İstersen headless modda çalıştırmak için şunu ekleyebilirsin:
-    # options.add_argument("--headless=new")
+    
 
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.get(product_url)

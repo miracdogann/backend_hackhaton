@@ -10,8 +10,9 @@ from webdriver_manager.chrome import ChromeDriverManager
 def get_all_questions_and_answers(product_url):
     options = Options()
     options.add_argument("--start-maximized")
-    #options.add_argument("--headless=new")  # Gerekirse görünmez mod için aç
+    options.add_argument("--headless=new")  # Gerekirse görünmez mod için aç
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
 
     # Q&A sayfasına yönlendirme
     if "/saticiya-sor" not in product_url:
